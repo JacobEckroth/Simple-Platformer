@@ -32,9 +32,19 @@ public:
 	 
 	void writeLevelToFile(const char* fileName);
 
+	void drawBoxes();
+	void updateBoxSize();
+	void drawWindowRect();
+	static SDL_Rect boxRect;
+	static int verticalBoxes;
+	static int horizontalBoxes;
 private:
 	int playerStartX;
 	int playerStartY;
+	SDL_Rect windowRect;
+
+	
+
 
 	SDL_Rect winRect;
 	std::vector<RectanglePlatform> platforms;

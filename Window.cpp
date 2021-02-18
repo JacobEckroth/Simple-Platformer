@@ -104,7 +104,7 @@ void Window::handleKeyUp(SDL_KeyboardEvent& key) {
 void Window::resizeWindow(int newWidth, int newHeight) {
 	Window::screenHeight = newHeight;
 	Window::screenWidth = newWidth;
-	game.updateWindowSize(newWidth, newHeight);
+	game.updateSizes(newWidth, newHeight);
 	
 }
 

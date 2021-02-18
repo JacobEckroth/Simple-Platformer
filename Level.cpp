@@ -6,11 +6,27 @@
 #include <sstream>
 #include "Window.h"
 #include <SDL.h>
+
+#define VERTICALBOXES 40
+#define HORIZONTALBOXES 40
+
+
+SDL_Rect Level::boxRect;
+int Level::verticalBoxes;
+int Level::horizontalBoxes;
 void Level::render() {
+	//drawBoxes();
+	
+	drawWindowRect();
 	for (int i = 0; i < platforms.size(); ++i) {
 		platforms[i].render();
 	}
 	drawWinRect();
+}
+
+void Level::drawWindowRect() {
+	SDL_SetRenderDrawColor(Window::renderer, 0, 0, 0, 255);
+	SDL_RenderDrawRect(Window::renderer, &windowRect);
 }
 
 
@@ -44,9 +60,40 @@ void Level::loadFromFile(const char* fileName) {
 
 void Level::init(const char* fileName) {
 	levelLoaded = false;
+	boxRect.x = boxRect.y = 0;
+	verticalBoxes = VERTICALBOXES;
+	horizontalBoxes = HORIZONTALBOXES;
+	boxRect.w = Game::gameScreenWidth / horizontalBoxes;
+	boxRect.h = Game::gameScreenHeight / verticalBoxes;
+
+
+	windowRect.w = boxRect.w * horizontalBoxes;
+	windowRect.h = boxRect.h * verticalBoxes;
+	windowRect.x = Game::topLeftX;
+	windowRect.y = Game::topLeftY;
+
 
 	loadFromFile(fileName);
 }
+
+void Level::drawBoxes() {
+	SDL_Rect drawRect;
+	drawRect.w = boxRect.w;
+	drawRect.h = boxRect.h;
+	SDL_SetRenderDrawColor(Window::renderer, 0, 0, 0, 255);
+	for (int x = 0; x < horizontalBoxes; x++) {
+		for (int y = 0; y < verticalBoxes; y++) {
+			drawRect.x = Game::topLeftX + x * boxRect.w;
+			drawRect.y =Game::topLeftY +  y * boxRect.h;
+			SDL_RenderDrawRect(Window::renderer, &drawRect);
+		}
+	}
+
+
+}
+
+
+
 
 Level::~Level() {
 
@@ -58,6 +105,18 @@ int Level::getStartingY() {
 
 int Level::getStartingX() {
 	return playerStartX;
+}
+
+void Level::updateBoxSize() {
+	boxRect.w = Game::gameScreenWidth / horizontalBoxes;
+	boxRect.h = Game::gameScreenHeight / verticalBoxes;
+	for (int i = 0; i < platforms.size(); i++) {
+		platforms.at(i).resizeBox();
+	}
+	windowRect.w = boxRect.w * horizontalBoxes;
+	windowRect.h = boxRect.h * verticalBoxes;
+	windowRect.x = Game::topLeftX;
+	windowRect.y = Game::topLeftY;
 }
 
 void Level::handleRectPlatformLine(std::string line, int index) {
@@ -121,13 +180,13 @@ void Level::initializeWinRect(std::string line) {
 	std::string token;
 
 	std::getline(iss, token, ' ');
-	winRect.x = stoi(token);
+	winRect.x = stoi(token) * Level::boxRect.w;
 	std::getline(iss, token, ' ');
-	winRect.y = stoi(token);
+	winRect.y = stoi(token) * Level::boxRect.h;
 	std::getline(iss, token, ' ');
-	winRect.w = stoi(token);
+	winRect.w = stoi(token) * Level::boxRect.w;
 	std::getline(iss, token, ' ');
-	winRect.h = stoi(token);
+	winRect.h = stoi(token) * Level::boxRect.h;
 }
 
 
@@ -151,8 +210,8 @@ void Level::setStartY(int newY) {
 }
 
 void Level::setEndRect(SDL_Rect newRect) {
-	winRect.x = newRect.x;
-	winRect.y = newRect.y;
+	winRect.x = Game::topLeftX + newRect.x;
+	winRect.y = Game::topLeftY+ newRect.y;
 	winRect.h = newRect.h;
 	winRect.w = newRect.w;
 }

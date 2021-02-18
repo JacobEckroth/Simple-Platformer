@@ -1,12 +1,17 @@
 #include "RectanglePlatform.h"
 #include "Window.h"
 #include <iostream>
-
+#include "Level.h"
+#include "Game.h"
 void RectanglePlatform::init(int newX, int newY, int newWidth, int newHeight, SDL_Color newColor) {
-	drawRect.x = hitbox.x = newX;
-	drawRect.y = hitbox.y = newY;
-	drawRect.w = hitbox.w = newWidth;
-	drawRect.h = hitbox.h = newHeight;
+	boxesX = newX;
+	boxesY =  newY;
+	boxesWidth = newWidth;
+	boxesHeight = newHeight;
+	drawRect.x = hitbox.x = Game::topLeftX + Level::boxRect.w* boxesX;
+	drawRect.y = hitbox.y =Game::topLeftY + Level::boxRect.h * boxesY;
+	drawRect.w = hitbox.w = Level::boxRect.w * boxesWidth;
+	drawRect.h = hitbox.h = Level::boxRect.h * boxesHeight;
 	color.r = newColor.r;
 	color.g = newColor.g;
 	color.b = newColor.b;
@@ -26,4 +31,13 @@ SDL_Rect RectanglePlatform::getHitbox() {
 
 SDL_Color RectanglePlatform::getColor() {
 	return color;
+}
+
+
+void RectanglePlatform::resizeBox() {
+	drawRect.w = hitbox.w =  Level::boxRect.w* boxesWidth;
+	drawRect.h = hitbox.h = Level::boxRect.h * boxesHeight;
+	drawRect.x = hitbox.x = Game::topLeftX + boxesX * Level::boxRect.w;
+	drawRect.y = hitbox.y = Game::topLeftY + boxesY * Level::boxRect.h;
+
 }

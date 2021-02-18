@@ -1,17 +1,22 @@
 #include "Player.h"
 #include "Window.h"
-
+#include <iostream>
 
 void Player::render() {
 	SDL_SetRenderDrawColor(Window::renderer, color.r, color.g, color.b, color.a);
 	SDL_RenderFillRect(Window::renderer, &drawRect);
 }
 
-void Player::init(int x, int y, int w, int h, SDL_Color newColor) {
-	drawRect.x = x;
-	drawRect.y = y;
-	drawRect.w = w;
-	drawRect.h = h;
+void Player::init(int boxesX, int boxesY, int boxesW, int boxesH, SDL_Color newColor) {
+
+	this->boxesW = boxesW;
+	this->boxesH = boxesH;
+	this->boxesX = boxesX;
+	this->boxesY = boxesY;
+	drawRect.w = Level::boxRect.w * boxesW;
+	drawRect.h = Level::boxRect.h * boxesH;
+	drawRect.x = Game::topLeftX + Level::boxRect.w * boxesX;
+	drawRect.y = Game::topLeftY + Level::boxRect.h * boxesY;
 	color.r = newColor.r;
 	color.g = newColor.g;
 	color.b = newColor.b;
@@ -20,7 +25,7 @@ void Player::init(int x, int y, int w, int h, SDL_Color newColor) {
 	movement.yVel = 0;
 	movement.mass = 10;
 	movement.maxYVel = 1000;
-	movement.maxXVel = 600;
+	movement.maxXVel = .4;
 	movingLeft = false;
 	movingRight = false;
 	onGround = false;
@@ -48,12 +53,25 @@ float Player::getY() {
 void Player::setY(float newY) {
 	drawRect.y = newY;
 	y = newY;
+	boxesY = (float(newY) - Game::topLeftY) / Level::boxRect.h;
 
 }
 void Player::setX(int newX) {
 	x = newX;
 	drawRect.x = newX;
+	boxesX = float(newX - Game::topLeftX) / Level::boxRect.w;
+	
 }
+
+void Player::resizePlayer() {
+	drawRect.w = Level::boxRect.w * boxesW;
+	drawRect.h = Level::boxRect.h * boxesH;
+	drawRect.x = Game::topLeftX + boxesX * Level::boxRect.w;
+	drawRect.y = Game::topLeftY + boxesY * Level::boxRect.h;
+	x = drawRect.x;
+	y = drawRect.y;
+}
+
 
 float Player::getYVel() {
 	return movement.yVel;

@@ -2,13 +2,17 @@
 #include <iostream>
 #include "SDL.h"
 #include "Window.h"
-#define GRAVITY 1000.
-#define JUMPFORCE -600.
+#define GRAVITY 100.
+#define JUMPFORCE -30.
 //#define JUMPFORCE -1500.
 
-#define MOVEFORCE 2000.
+#define MOVEFORCE 3.
 #define GROUNDFRICTION .3
-#define PADDING 1.
+#define PADDING 100.
+int Game::topLeftX;
+int Game::topLeftY;
+int Game::gameScreenWidth;
+int Game::gameScreenHeight;
 
 void Game::render() {
 	player.render();
@@ -34,20 +38,6 @@ void Game::update(float deltaTime) {
 	}
 }
 
-void Game::updateDrawRectCoords() {
-	
-	int mouseX, mouseY;
-	SDL_GetMouseState(&mouseX, &mouseY);
-	
-	
-	drawRect.w = mouseX - drawRect.x;
-	
-	drawRect.h = mouseY - drawRect.y;
-	
-
-
-	
-}
 
 void Game::flipEditMode() {
 	editingLevel = !editingLevel;
@@ -55,18 +45,20 @@ void Game::flipEditMode() {
 
 
 void Game::init(int w, int h) {
-	gameScreenWidth = w;
-	gameScreenHeight = h;
+	
+	updateWindowSize(w, h);
 	SDL_Color playerColor;
 	playerColor.r = 255;
 	playerColor.g = 0;
 	playerColor.b = 0;
 	playerColor.a = 255;
-	player.init(0, 0, 30, 50, playerColor );
+	
 	level = new Level();
 	level->init("1.txt");
+	player.init(0, 0, 1, 2, playerColor);
 	player.setY(level->getStartingY());
 	player.setX(level->getStartingX());
+	
 	editingLevel = false;
 }
 
@@ -94,12 +86,12 @@ void Game::updatePlayerVertical(float deltaTime) {
 		float y = player.getY();
 
 	
-		float yVel = player.getYVel() + GRAVITY * deltaTime;
+		float yVel = player.getYVel() + GRAVITY * deltaTime * Level::boxRect.h;
 
-		if (yVel > player.getMaxYVel()) {
-			yVel = player.getMaxYVel();
+		if (yVel > player.getMaxYVel() * Level::boxRect.h) {
+			yVel = player.getMaxYVel() * Level::boxRect.h;
 		}
-		y = y + yVel * deltaTime + .5 * GRAVITY * pow(deltaTime, 2);
+		y = y + yVel * deltaTime + .5 * GRAVITY * pow(deltaTime, 2) * Level::boxRect.h;
 
 
 
@@ -123,7 +115,7 @@ void Game::updatePlayerHorizontal(float deltaTime) {
 
 
 
-	xVel += direction * MOVEFORCE * deltaTime;
+	xVel += direction * MOVEFORCE * deltaTime * Level::boxRect.w;
 	if (direction == 0 && player.isOnGround()) {
 		xVel *= GROUNDFRICTION;
 	}
@@ -131,24 +123,25 @@ void Game::updatePlayerHorizontal(float deltaTime) {
 		xVel *= GROUNDFRICTION;
 	}
 	if (xVel >= 0) {
-		if (xVel > player.getMaxXVel()) {
-			xVel = player.getMaxXVel();
+		if (xVel > player.getMaxXVel()*Level::boxRect.w) {
+			xVel = player.getMaxXVel()*Level::boxRect.w;
 		}
 	}
 	else if (xVel < 0) {
-		if (abs(xVel) > player.getMaxXVel()) {
-			xVel = -player.getMaxXVel();
+		if (abs(xVel) > player.getMaxXVel()*Level::boxRect.w) {
+			xVel = -player.getMaxXVel()*Level::boxRect.w;
 		}
 	}
 	if (direction == 0) {
 		if (abs(xVel) < PADDING) {
+		
 			xVel = 0;
 		}
 	}
+
+	x += xVel * deltaTime * Level::boxRect.w;
+
 	
-	x += xVel * deltaTime;
-
-
 	player.setXVel(xVel);
 	player.setX(x);
 	resolvePlayerHorizontalCollisions();
@@ -163,14 +156,14 @@ bool Game::resolvePlayerVerticalCollisions() {
 		return false;
 	}
 	float y = player.getY();
-	if (y + player.getHeight() > gameScreenHeight) {	//if the player hit bottom of screen
+	if (y + player.getHeight() > Game::topLeftY +  Level::boxRect.h * Level::verticalBoxes) {	//if the player hit bottom of screen
 		
 		player.setOnGround(true);
-		player.setY(gameScreenHeight - player.getHeight());
+		player.setY(Game::topLeftY + Level::boxRect.h * Level::verticalBoxes - player.getHeight());
 		return true;
 	}
 	if (player.getY() < 0) {
-		player.setY(0);
+		player.setY(Game::topLeftY);
 		player.setYVel(0);
 	}
 
@@ -208,14 +201,14 @@ bool Game::resolvePlayerHorizontalCollisions() {
 	int w = player.getWidth();
 	int x = player.getX();
 	if (x < 0) {
-		player.setX(0);
+		player.setX(topLeftX);
 		if (!player.getMovingRight()) {
 			player.setXVel(0);
 		}
 		return true;
 	}
-	if (x + w >= gameScreenWidth) {
-		player.setX(gameScreenWidth - w);
+	if (x + w >= Game::topLeftX + Level::boxRect.w * Level::horizontalBoxes) {
+		player.setX(Game::topLeftX + Level::boxRect.w * Level::horizontalBoxes - w);
 		if (!player.getMovingLeft()) {
 			player.setXVel(0);
 		}
@@ -252,7 +245,7 @@ void Game::attemptPlayerJump() {
 	
 		player.setOnGround(false);
 		player.setOnPlatform(false);
-		player.setYVel(JUMPFORCE);
+		player.setYVel(JUMPFORCE * Level::boxRect.h);
 	}
 }
 
@@ -304,12 +297,57 @@ void Game::handleMouseDown(SDL_MouseButtonEvent& b) {
 	
 }
 
+
+void Game::updateDrawRectCoords() {
+
+	int mouseX, mouseY;
+	SDL_GetMouseState(&mouseX, &mouseY);
+
+
+	drawRect.w = (int((abs(mouseX - drawRect.x))/Level::boxRect.w) + 1) * Level::boxRect.w ;
+
+	drawRect.h = (int((abs(mouseY - drawRect.y)) / Level::boxRect.h) + 1) * Level::boxRect.h;
+
+	if (mouseX - drawRect.x < 0) {
+		if (!drawNegX) {
+			drawNegX = true;
+			drawRect.x += Level::boxRect.w;
+		}
+		drawRect.w = -drawRect.w;
+	}
+	else {
+		//if we're switching back to positive x, i.e. mouse is to right of rect x y
+		if (drawNegX) {
+			drawNegX = false;
+			drawRect.x -= Level::boxRect.w;
+		}
+	}
+	if (mouseY - drawRect.y < 0) {
+		drawRect.h = -drawRect.h;
+		if (!drawNegY) {
+			drawNegY = true;
+			drawRect.y += Level::boxRect.h;
+		}
+	}
+	else {
+		//switching back to positive y
+		if (drawNegY) {
+			drawNegY = false;
+			drawRect.y -= Level::boxRect.h;
+		}
+	}
+
+}
+
+
+
 void Game::startDrawingRect() {
+	drawNegX = drawNegY = false;
 	drawingRect = true;
 	int mouseX, mouseY;
 	SDL_GetMouseState(&mouseX, &mouseY);
-	drawRect.x = mouseX;
-	drawRect.y = mouseY;
+	drawRect.x = Game::topLeftX + int((mouseX-Game::topLeftX) / Level::boxRect.w) * Level::boxRect.w;
+	drawRect.y = Game::topLeftY + int((mouseY-Game::topLeftY) / Level::boxRect.h) * Level::boxRect.h;
 	drawRect.w = 0;
 	drawRect.h = 0;
 }
@@ -344,8 +382,51 @@ void Game::addDrawRectToLevel() {
 	SDL_Color defaultColor;
 	defaultColor.r = defaultColor.g = defaultColor.b = 0;
 	defaultColor.a = 255;
-	newPlatform.init(drawRect.x, drawRect.y, drawRect.w, drawRect.h, defaultColor);
-	level->addPlatform(newPlatform);
+	float boxesX = (drawRect.x-Game::topLeftX) / Level::boxRect.w;
+	float boxesY = (drawRect.y-Game::topLeftY) / Level::boxRect.h;
+	
+	int roundedBoxesX, roundedBoxesY, roundedBoxesW, roundedBoxesH;
+
+	roundedBoxesX = int(boxesX);
+	
+	
+	roundedBoxesY = int(boxesY);
+
+	float boxesEndX = int(drawRect.x + drawRect.w - Game::topLeftX) / Level::boxRect.w;
+
+	float boxesEndY = int(drawRect.y + drawRect.h - Game::topLeftY) / Level::boxRect.h;
+
+	
+	//funky stuff happens if we don't do this I have no idea why
+	if (drawNegX) {
+		roundedBoxesW = int(boxesEndX - boxesX);
+	}
+	else {
+		roundedBoxesW = int(boxesEndX - boxesX) + 1;
+	}
+	if (drawNegY) {
+		roundedBoxesH = int(boxesEndY - boxesY);
+	}
+	else {
+		roundedBoxesH = int(boxesEndY - boxesY) + 1;
+	}
+	
+	
+	
+	
+	
+
+	if (roundedBoxesX + roundedBoxesW > Level::horizontalBoxes || roundedBoxesX < 0 || roundedBoxesY +roundedBoxesH> Level::verticalBoxes || roundedBoxesY < 0) {
+		//out of bounds
+	}
+	else {
+		if (roundedBoxesH != 0 && roundedBoxesW != 0) {
+			newPlatform.init(roundedBoxesX, roundedBoxesY, roundedBoxesW, roundedBoxesH, defaultColor);
+			level->addPlatform(newPlatform);
+		}
+	}
+
+	
 }
 
 
@@ -357,6 +438,23 @@ void Game::handleMouseUp(SDL_MouseButtonEvent& b) {
 }
 
 void Game::updateWindowSize(int newWidth, int newHeight) {
-	gameScreenHeight = newHeight;
-	gameScreenWidth = newWidth;
+	if (newHeight > newWidth) {
+		gameScreenHeight = newWidth;
+		gameScreenWidth = newWidth;
+	}
+	else {
+		gameScreenHeight = newHeight;
+		gameScreenWidth = newHeight;
+	}
+
+	topLeftX = (newWidth - gameScreenWidth) / 2;
+	topLeftY = (newHeight - gameScreenHeight) / 2;
+
+}
+
+
+void Game::updateSizes(int newW, int newH) {
+	updateWindowSize(newW, newH);
+	level->updateBoxSize();
+	player.resizePlayer();
 }

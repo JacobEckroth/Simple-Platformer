@@ -5,17 +5,25 @@ class Game
 {
 private:
 	Player player;
-	int gameScreenWidth;		//will be a square.
-	int gameScreenHeight;
+	
 	Level* level;
 
 	bool editingLevel;
 
 	bool drawingRect;
 	SDL_Rect drawRect;
+	bool drawNegX;
+	bool drawNegY;
 	
 
+
+
+
 public:
+	static int gameScreenWidth;		//will be a square.
+	static int gameScreenHeight;
+	static int topLeftX;
+	static int topLeftY;
 	void render();
 	void update(float);
 	void init(int w, int h);
@@ -49,6 +57,8 @@ public:
 	void updateDrawRectCoords();
 	void renderDrawRect();
 
+
+	void updateSizes(int, int);
 	void updateWindowSize(int, int);
 };
 

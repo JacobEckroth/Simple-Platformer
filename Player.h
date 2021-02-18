@@ -39,6 +39,8 @@ public:
 	bool getMovingRight();
 	void setMovingLeft(bool);
 	void setMovingRight(bool);
+
+	void resizePlayer();
 	
 	SDL_Rect getHitbox();
 
@@ -50,6 +52,12 @@ private:
 	bool onGround;
 	float y;
 	float x;
+
+	float boxesX;
+	float boxesY;
+	float boxesW;
+	float boxesH;
+
 	bool movingLeft;
 	bool movingRight;
 	bool onPlatform;
