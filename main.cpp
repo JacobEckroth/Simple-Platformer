@@ -1,5 +1,6 @@
 #include "Window.h"
 #include "SDL.h"
+
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <ctime>

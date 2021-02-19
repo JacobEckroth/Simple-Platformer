@@ -25,6 +25,7 @@ void Game::render() {
 	
 	player.render();
 	renderDebugInfo();
+	testButton.render();
 }
 
 void Game::renderDebugInfo() {
@@ -63,6 +64,7 @@ void Game::update(float deltaTime) {
 	if (drawingRect) {
 		updateDrawRectCoords();
 	}
+	updateButtons();
 }
 
 
@@ -84,6 +86,9 @@ void Game::init(int w, int h) {
 	loadNewLevel("1.txt");
 
 	editingLevel = false;
+
+	testButton.init("data/images/StartInactive.png", "data/images/StartActive.png", 0, 0, Level::boxRect.h * 4);
+
 }
 
 
@@ -106,6 +111,18 @@ void Game::updatePlayer(float deltaTime) {
 	updatePlayerVertical(deltaTime);
 	updatePlayerHorizontal(deltaTime);
 
+}
+
+
+void Game::updateButtons() {
+	int x, y;
+	SDL_GetMouseState(&x, &y);
+	if (testButton.mouseInButton(x, y)) {
+		testButton.updateButtonActive(true);
+	}
+	else {
+		testButton.updateButtonActive(false);
+	}
 }
 
 void Game::updatePlayerVertical(float deltaTime) {
@@ -152,6 +169,7 @@ void Game::updatePlayerHorizontal(float deltaTime) {
 
 
 	xVel += direction * MOVEFORCE * deltaTime * Level::boxRect.w;
+	//xVel += direction * Level::boxRect.w * deltaTime;
 	if (direction == 0 && player.isOnGround()) {
 		xVel *= GROUNDFRICTION;
 	}
@@ -198,7 +216,7 @@ bool Game::resolvePlayerVerticalCollisions() {
 		player.setY(Game::topLeftY + Level::boxRect.h * Level::verticalBoxes - player.getHeight());
 		return true;
 	}
-	if (player.getY() < 0) {
+	if (player.getY() < topLeftY) {
 		player.setY(Game::topLeftY);
 		player.setYVel(0);
 	}
@@ -236,7 +254,7 @@ bool Game::resolvePlayerVerticalCollisions() {
 bool Game::resolvePlayerHorizontalCollisions() {
 	int w = player.getWidth();
 	int x = player.getX();
-	if (x < 0) {
+	if (x < topLeftX) {
 		player.setX(topLeftX);
 		if (!player.getMovingRight()) {
 			player.setXVel(0);
@@ -498,4 +516,9 @@ void Game::updateSizes(int newW, int newH) {
 	updateWindowSize(newW, newH);
 	level->updateBoxSize();
 	player.resizePlayer();
+	updateButtonSizes();
+}
+
+void Game::updateButtonSizes() {
+	testButton.updateButtonSize(0, 0, Level::boxRect.h * 3);
 }

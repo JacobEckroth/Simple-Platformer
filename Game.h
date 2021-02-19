@@ -2,6 +2,7 @@
 #include "Player.h"
 #include "Level.h"
 #include "Debugger.h"
+#include "Button.h"
 class Game
 {
 private:
@@ -20,7 +21,7 @@ private:
 	Debugger debugger;
 
 
-
+	Button testButton;
 
 public:
 	static int gameScreenWidth;		//will be a square.
@@ -68,5 +69,8 @@ public:
 	void loadNewLevel(const char* levelName);
 
 	void renderDebugInfo();
+
+	void updateButtons();
+	void updateButtonSizes();
 };
 

@@ -61,8 +61,8 @@ void Level::loadFromFile(const char* fileName) {
 void Level::init(const char* fileName) {
 
 	//initializing win color.
-	WinRect::winColor.r = 255;
-	WinRect::winColor.g = 215;
+	WinRect::winColor.r = 0;
+	WinRect::winColor.g = 255;
 	WinRect::winColor.b = 0;
 	WinRect::winColor.a = 255;
 	levelLoaded = false;

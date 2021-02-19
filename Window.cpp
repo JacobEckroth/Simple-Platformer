@@ -1,5 +1,5 @@
 #include "Window.h"
-
+#include "SDL_image.h"
 #include <iostream>
 
 
@@ -154,8 +154,16 @@ void Window::init(const char* title, int xpos, int ypos, bool fullscreen) {
 			std::cout << "Renderer created!\n";
 			SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 		}
-		isRunning = true;
-		game.init(Window::screenWidth, Window::screenHeight);
+		int imgFlags = IMG_INIT_PNG;
+		if (!(IMG_Init(imgFlags) & imgFlags))
+		{
+			printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
+			isRunning = false;
+		}
+		else {
+			isRunning = true;
+			game.init(Window::screenWidth, Window::screenHeight);
+		}
 
 	}
 
