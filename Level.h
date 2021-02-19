@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #define LEVEL_FOLDER "levels/"
+#include "WinRect.h"
 class Level
 {
 
@@ -17,7 +18,7 @@ public:
 	void initializeStartingPosition(std::string);
 	void initializeWinRect(std::string);
 	std::vector<RectanglePlatform> getPlatforms();
-	void drawWinRect();
+
 	int getStartingY();
 	int getStartingX();
 
@@ -28,7 +29,7 @@ public:
 	void addPlatform(RectanglePlatform);
 	void setStartX(int);
 	void setStartY(int);
-	void setEndRect(SDL_Rect);
+	
 	 
 	void writeLevelToFile(const char* fileName);
 
@@ -46,7 +47,7 @@ private:
 	
 
 
-	SDL_Rect winRect;
+	WinRect winRect;
 	std::vector<RectanglePlatform> platforms;
 
 	bool levelLoaded;

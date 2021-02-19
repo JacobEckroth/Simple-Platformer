@@ -1,6 +1,7 @@
 #pragma once
 #include "Player.h"
 #include "Level.h"
+#include "Debugger.h"
 class Game
 {
 private:
@@ -14,7 +15,7 @@ private:
 	SDL_Rect drawRect;
 	bool drawNegX;
 	bool drawNegY;
-	
+	Debugger debugger;
 
 
 
@@ -60,5 +61,10 @@ public:
 
 	void updateSizes(int, int);
 	void updateWindowSize(int, int);
+
+
+	void loadNewLevel(const char* levelName);
+
+	void renderDebugInfo();
 };
 

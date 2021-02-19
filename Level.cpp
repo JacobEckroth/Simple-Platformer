@@ -15,13 +15,13 @@ SDL_Rect Level::boxRect;
 int Level::verticalBoxes;
 int Level::horizontalBoxes;
 void Level::render() {
-	//drawBoxes();
+	drawBoxes();
 	
 	drawWindowRect();
 	for (int i = 0; i < platforms.size(); ++i) {
 		platforms[i].render();
 	}
-	drawWinRect();
+	winRect.render();
 }
 
 void Level::drawWindowRect() {
@@ -59,6 +59,12 @@ void Level::loadFromFile(const char* fileName) {
 }
 
 void Level::init(const char* fileName) {
+
+	//initializing win color.
+	WinRect::winColor.r = 255;
+	WinRect::winColor.g = 215;
+	WinRect::winColor.b = 0;
+	WinRect::winColor.a = 255;
 	levelLoaded = false;
 	boxRect.x = boxRect.y = 0;
 	verticalBoxes = VERTICALBOXES;
@@ -108,6 +114,8 @@ int Level::getStartingX() {
 }
 
 void Level::updateBoxSize() {
+
+
 	boxRect.w = Game::gameScreenWidth / horizontalBoxes;
 	boxRect.h = Game::gameScreenHeight / verticalBoxes;
 	for (int i = 0; i < platforms.size(); i++) {
@@ -117,6 +125,8 @@ void Level::updateBoxSize() {
 	windowRect.h = boxRect.h * verticalBoxes;
 	windowRect.x = Game::topLeftX;
 	windowRect.y = Game::topLeftY;
+
+	winRect.resizeBox();
 }
 
 void Level::handleRectPlatformLine(std::string line, int index) {
@@ -180,20 +190,17 @@ void Level::initializeWinRect(std::string line) {
 	std::string token;
 
 	std::getline(iss, token, ' ');
-	winRect.x = stoi(token) * Level::boxRect.w;
+	int x = stoi(token);
 	std::getline(iss, token, ' ');
-	winRect.y = stoi(token) * Level::boxRect.h;
+	int y = stoi(token);
 	std::getline(iss, token, ' ');
-	winRect.w = stoi(token) * Level::boxRect.w;
+	int w = stoi(token);
 	std::getline(iss, token, ' ');
-	winRect.h = stoi(token) * Level::boxRect.h;
+	int h  = stoi(token) ;
+
+	winRect.init(x, y, w, h);
 }
 
-
-void Level::drawWinRect() {
-	SDL_SetRenderDrawColor(Window::renderer, 255, 215, 0, 255);
-	SDL_RenderFillRect(Window::renderer, &winRect);
-}
 
 
 
@@ -209,12 +216,6 @@ void Level::setStartY(int newY) {
 	playerStartY = newY;
 }
 
-void Level::setEndRect(SDL_Rect newRect) {
-	winRect.x = Game::topLeftX + newRect.x;
-	winRect.y = Game::topLeftY+ newRect.y;
-	winRect.h = newRect.h;
-	winRect.w = newRect.w;
-}
 
 
 void Level::writeLevelToFile(const char* fileName) {
@@ -236,7 +237,7 @@ void Level::writeLevelToFile(const char* fileName) {
 		writeFile << std::to_string(color.b) << " " << std::to_string(color.a) << "\n";
 	}
 	writeFile << std::to_string(playerStartX) << " " << std::to_string(playerStartY) << "\n";
-	writeFile << std::to_string(winRect.x) << " " << std::to_string(winRect.y) << " " << std::to_string(winRect.w) << " " << std::to_string(winRect.h) << "\n";
+	writeFile << std::to_string(winRect.getBoxesX()) << " " << std::to_string(winRect.getBoxesY()) << " " << std::to_string(winRect.getBoxesWidth()) << " " << std::to_string(winRect.getBoxesHeight()) << "\n";
 
 
 	writeFile.close();

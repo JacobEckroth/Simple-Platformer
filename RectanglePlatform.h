@@ -14,7 +14,11 @@ public:
 private:
 
 	SDL_Color color;
+
 	SDL_Rect drawRect;
+	
+
+
 	SDL_Rect hitbox;
 
 	int boxesX;

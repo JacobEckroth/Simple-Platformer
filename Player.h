@@ -9,6 +9,8 @@ class Player
 public:
 	void render();
 	void init(int, int, int, int, SDL_Color);
+	void init(int, int, int, int);
+	void setColor(SDL_Color);
 	MovementInfo getMovementInfo();
 	void setMovement(MovementInfo);
 	float getY();

@@ -30,7 +30,29 @@ void Player::init(int boxesX, int boxesY, int boxesW, int boxesH, SDL_Color newC
 	movingRight = false;
 	onGround = false;
 	onPlatform = false;
+}
+
+
+void Player::init(int boxesX, int boxesY, int boxesW, int boxesH) {
+
+	this->boxesW = boxesW;
+	this->boxesH = boxesH;
+	this->boxesX = boxesX;
+	this->boxesY = boxesY;
+	drawRect.w = Level::boxRect.w * boxesW;
+	drawRect.h = Level::boxRect.h * boxesH;
+	drawRect.x = Game::topLeftX + Level::boxRect.w * boxesX;
+	drawRect.y = Game::topLeftY + Level::boxRect.h * boxesY;
 	
+	movement.xVel = 0;
+	movement.yVel = 0;
+	movement.mass = 10;
+	movement.maxYVel = 1000;
+	movement.maxXVel = .7;
+	movingLeft = false;
+	movingRight = false;
+	onGround = false;
+	onPlatform = false;
 }
 
 MovementInfo Player::getMovementInfo() {
@@ -151,4 +173,12 @@ void Player::setOnPlatform(bool newSet) {
 
 RectanglePlatform Player::getPlatform() {
 	return platform;
+}
+
+
+void Player::setColor(SDL_Color newColor) {
+	color.r = newColor.r;
+	color.g = newColor.g;
+	color.b = newColor.b;
+	color.a = newColor.a;
 }

@@ -7,20 +7,48 @@
 //#define JUMPFORCE -1500.
 
 #define MOVEFORCE 3.
-#define GROUNDFRICTION .3
-#define PADDING 100.
+#define GROUNDFRICTION .01
+#define PADDING .2
 int Game::topLeftX;
 int Game::topLeftY;
 int Game::gameScreenWidth;
 int Game::gameScreenHeight;
 
 void Game::render() {
-	player.render();
 	level->render();
-	if (drawingRect) {
-		renderDrawRect();
+	if (editingLevel) {
+		if (drawingRect) {
+			renderDrawRect();
+		}
 	}
+	
+	player.render();
+	renderDebugInfo();
 }
+
+void Game::renderDebugInfo() {
+	std::vector<char*> strings;
+
+
+	int playerX = player.getX();
+	std::string xPos = "Xpos: " + std::to_string(playerX);
+
+	strings.push_back((char*)xPos.c_str());
+
+	std::string yPos = "Ypos: " + std::to_string(int(player.getY()));
+	strings.push_back((char*)yPos.c_str());
+
+	std::string xVel = "Xvel: " + std::to_string(int(player.getXVel()));
+	strings.push_back((char*)xVel.c_str());
+
+	std::string yVel = "Yvel: " + std::to_string(int(player.getYVel()));
+	strings.push_back((char*)yVel.c_str());
+	
+
+	debugger.renderStrings(strings);
+
+}
+
 
 void Game::renderDrawRect() {
 	SDL_Color defaultColor;
@@ -52,14 +80,23 @@ void Game::init(int w, int h) {
 	playerColor.g = 0;
 	playerColor.b = 0;
 	playerColor.a = 255;
-	
+	player.setColor(playerColor);
+
+	loadNewLevel("1.txt");
+
+	editingLevel = false;
+}
+
+
+void Game::loadNewLevel(const char* levelName) {
+	if (level) {
+		delete level;
+	}
 	level = new Level();
-	level->init("1.txt");
-	player.init(0, 0, 1, 2, playerColor);
+	level->init(levelName);
+	player.init(0, 0, 1, 2);
 	player.setY(level->getStartingY());
 	player.setX(level->getStartingX());
-	
-	editingLevel = false;
 }
 
 void Game::writeFile(const char* fileName) {
@@ -291,9 +328,12 @@ bool Game::areRectsHorizontallyIntersecting(SDL_Rect rect1, SDL_Rect rect2) {
 
 
 void Game::handleMouseDown(SDL_MouseButtonEvent& b) {
-	if (b.button == SDL_BUTTON_LEFT) {
-		startDrawingRect();
+	if (editingLevel) {
+		if (b.button == SDL_BUTTON_LEFT) {
+			startDrawingRect();
+		}
 	}
+	
 	
 }
 
@@ -431,9 +471,12 @@ void Game::addDrawRectToLevel() {
 
 
 void Game::handleMouseUp(SDL_MouseButtonEvent& b) {
-	if (b.button == SDL_BUTTON_LEFT) {
-		stopDrawingRect();
+	if (editingLevel) {
+		if (b.button == SDL_BUTTON_LEFT) {
+			stopDrawingRect();
+		}
 	}
+	
 	
 }
 

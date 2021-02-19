@@ -73,6 +73,7 @@ void Window::handleKeyDown(SDL_KeyboardEvent& key) {
 		game.writeFile("test.txt");
 		break;
 	case 8:
+		
 		game.flipEditMode();
 		break;
 	default:
