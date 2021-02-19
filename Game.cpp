@@ -2,6 +2,7 @@
 #include <iostream>
 #include "SDL.h"
 #include "Window.h"
+#include "Pastels.h"
 #define GRAVITY 100.
 #define JUMPFORCE -30.
 //#define JUMPFORCE -1500.
@@ -51,10 +52,8 @@ void Game::renderDebugInfo() {
 
 
 void Game::renderDrawRect() {
-	SDL_Color defaultColor;
-	defaultColor.r = defaultColor.g = defaultColor.b = 0;
-	defaultColor.a = 255;
-	SDL_SetRenderDrawColor(Window::renderer, defaultColor.r, defaultColor.g, defaultColor.b, defaultColor.a);
+	
+	SDL_SetRenderDrawColor(Window::renderer, drawRectColor.r, drawRectColor.g, drawRectColor.b, drawRectColor.a);
 	SDL_RenderFillRect(Window::renderer, &drawRect);
 }
 
@@ -382,6 +381,7 @@ void Game::updateDrawRectCoords() {
 
 
 void Game::startDrawingRect() {
+	drawRectColor = generateRandomPastel();
 	drawNegX = drawNegY = false;
 	drawingRect = true;
 	int mouseX, mouseY;
@@ -419,9 +419,7 @@ void Game::stopDrawingRect() {
 
 void Game::addDrawRectToLevel() {
 	RectanglePlatform newPlatform;
-	SDL_Color defaultColor;
-	defaultColor.r = defaultColor.g = defaultColor.b = 0;
-	defaultColor.a = 255;
+
 	float boxesX = (drawRect.x-Game::topLeftX) / Level::boxRect.w;
 	float boxesY = (drawRect.y-Game::topLeftY) / Level::boxRect.h;
 	
@@ -461,7 +459,7 @@ void Game::addDrawRectToLevel() {
 	}
 	else {
 		if (roundedBoxesH != 0 && roundedBoxesW != 0) {
-			newPlatform.init(roundedBoxesX, roundedBoxesY, roundedBoxesW, roundedBoxesH, defaultColor);
+			newPlatform.init(roundedBoxesX, roundedBoxesY, roundedBoxesW, roundedBoxesH, drawRectColor);
 			level->addPlatform(newPlatform);
 		}
 	}

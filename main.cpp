@@ -13,7 +13,7 @@
 	Uint32 frameStart = SDL_GetTicks();
 	int frameTime = 0;
 	Window* gameWindow = new Window;
-	
+
 	float deltaTime;
 
 

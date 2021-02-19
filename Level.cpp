@@ -15,7 +15,7 @@ SDL_Rect Level::boxRect;
 int Level::verticalBoxes;
 int Level::horizontalBoxes;
 void Level::render() {
-	drawBoxes();
+	//drawBoxes();
 	
 	drawWindowRect();
 	for (int i = 0; i < platforms.size(); ++i) {

@@ -12,6 +12,8 @@ private:
 	bool editingLevel;
 
 	bool drawingRect;
+
+	SDL_Color drawRectColor;
 	SDL_Rect drawRect;
 	bool drawNegX;
 	bool drawNegY;
