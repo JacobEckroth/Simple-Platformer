@@ -244,3 +244,16 @@ void Level::writeLevelToFile(const char* fileName) {
 
 }
 
+
+void Level::deleteMouseRectangle() {
+
+	int x, y;
+	SDL_GetMouseState(&x, &y);
+	for (int i = platforms.size()-1; i >=0; --i) {
+	
+		if (platforms.at(i).mouseInPlatform(x, y)) {
+		
+			platforms.erase(platforms.begin() + i);
+		}
+	}
+}

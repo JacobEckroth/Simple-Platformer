@@ -41,3 +41,11 @@ void RectanglePlatform::resizeBox() {
 	drawRect.y = hitbox.y = Game::topLeftY + boxesY * Level::boxRect.h;
 
 }
+
+bool RectanglePlatform::mouseInPlatform(int mouseX, int mouseY) {
+	if (mouseX >= hitbox.x && mouseX <= hitbox.x + hitbox.w && mouseY >= hitbox.y && mouseY <= hitbox.y + hitbox.h) {
+		return true;
+	}
+
+	return false;
+}

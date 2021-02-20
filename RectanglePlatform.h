@@ -10,6 +10,7 @@ public:
 	void init(int, int, int, int, SDL_Color);
 	SDL_Rect getHitbox();
 	SDL_Color getColor();
+	bool mouseInPlatform(int x, int y);
 	void resizeBox();
 private:
 

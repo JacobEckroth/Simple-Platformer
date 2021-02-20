@@ -110,12 +110,17 @@ void Game::init(int w, int h) {
 void Game::showEditMenu() {
 	editButtonMenu.setActive(false);
 	editMenu.setActive(true);
+	editMenu.resizeMenu();
 	editingLevel = true;
 }
 
 void Game::hideEditMenu() {
+	if (deleting) {
+		toggleDeleteMode();
+	}
 	editButtonMenu.setActive(true);
 	editMenu.setActive(false);
+	editButtonMenu.resizeMenu();
 	editingLevel = false;
 }
 
@@ -416,15 +421,17 @@ bool Game::areRectsHorizontallyIntersecting(SDL_Rect rect1, SDL_Rect rect2) {
 
 
 
-void Game::handleMouseDown(SDL_MouseButtonEvent& b) {
-	if (handleMenuClick()) {	//if nothing was clicked
-	}
-	else if (editingLevel) {
-		if (b.button == SDL_BUTTON_LEFT) {
+void Game::handleMouseDown(SDL_MouseButtonEvent& b) {\
+	if (b.button == SDL_BUTTON_LEFT) {
+		if (handleMenuClick()) {	//if nothing was clicked
+		}
+		else if (editingLevel && deleting){
+			level->deleteMouseRectangle();
+		}
+		else if(editingLevel){
 			startDrawingRect();
 		}
 	}
-
 
 }
 
@@ -485,28 +492,31 @@ void Game::startDrawingRect() {
 }
 
 void Game::stopDrawingRect() {
-	drawingRect = false;
-	int mouseX, mouseY;
-	SDL_GetMouseState(&mouseX, &mouseY);
-	if (mouseX - drawRect.x <= 0) {
-		drawRect.w = drawRect.x - mouseX;
-		drawRect.x = mouseX;
+	if (drawingRect) {
+		drawingRect = false;
+		int mouseX, mouseY;
+		SDL_GetMouseState(&mouseX, &mouseY);
+		if (mouseX - drawRect.x <= 0) {
+			drawRect.w = drawRect.x - mouseX;
+			drawRect.x = mouseX;
 
-	}
-	else {
-		drawRect.w = mouseX - drawRect.x;
-	}
+		}
+		else {
+			drawRect.w = mouseX - drawRect.x;
+		}
 
-	if (mouseY - drawRect.y <= 0) {
-		drawRect.h = drawRect.y - mouseY;
-		drawRect.y = mouseY;
+		if (mouseY - drawRect.y <= 0) {
+			drawRect.h = drawRect.y - mouseY;
+			drawRect.y = mouseY;
 
-	}
-	else {
-		drawRect.h = mouseY - drawRect.y;
-	}
+		}
+		else {
+			drawRect.h = mouseY - drawRect.y;
+		}
 
-	addDrawRectToLevel();
+		addDrawRectToLevel();
+	}
+	
 }
 
 void Game::addDrawRectToLevel() {
@@ -562,6 +572,7 @@ void Game::addDrawRectToLevel() {
 
 void Game::handleMouseUp(SDL_MouseButtonEvent& b) {
 	if (editingLevel) {
+	
 		if (b.button == SDL_BUTTON_LEFT) {
 			stopDrawingRect();
 		}
@@ -611,6 +622,7 @@ bool Game::handleMenuClick() {
 			switch (index) {
 			case 0:
 				showEditMenu();
+				
 				break;
 
 			default:
@@ -653,7 +665,8 @@ bool Game::handleMenuClick() {
 }
 
 void Game::toggleDeleteMode() {
-	if (deleting) {
+	deleting = !deleting;
+	if (!deleting) {
 		Button* activateDelete = new Button();
 		activateDelete->init(getImageFilePath("ActivateDeleteButtonInactive.png"), getImageFilePath("ActivateDeleteButtonActive.png"), 0, 0, 4);
 		editMenu.updateButton(activateDelete, 0);
@@ -663,7 +676,7 @@ void Game::toggleDeleteMode() {
 		deactivateDelete->init(getImageFilePath("DeactivateDeleteButtonInactive.png"), getImageFilePath("DeactivateDeleteButtonActive.png"), 0, 0, 4);
 		editMenu.updateButton(deactivateDelete, 0);
 	}
-	deleting = !deleting;
+
 }
 
 void Game::startPlacingStart() {

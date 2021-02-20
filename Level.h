@@ -36,6 +36,7 @@ public:
 	void drawBoxes();
 	void updateBoxSize();
 	void drawWindowRect();
+	void deleteMouseRectangle();
 	static SDL_Rect boxRect;
 	static int verticalBoxes;
 	static int horizontalBoxes;
