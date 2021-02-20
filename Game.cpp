@@ -3,6 +3,7 @@
 #include "SDL.h"
 #include "Window.h"
 #include "Pastels.h"
+#include <string>
 #define GRAVITY 100.
 #define JUMPFORCE -30.
 //#define JUMPFORCE -1500.
@@ -10,10 +11,15 @@
 #define MOVEFORCE 3.
 #define GROUNDFRICTION .01
 #define PADDING .2
+
+
+#define IMAGEFOLDER "data/images/"
+
 int Game::topLeftX;
 int Game::topLeftY;
 int Game::gameScreenWidth;
 int Game::gameScreenHeight;
+
 
 void Game::render() {
 	level->render();
@@ -22,10 +28,10 @@ void Game::render() {
 			renderDrawRect();
 		}
 	}
-	
+
 	player.render();
 	renderDebugInfo();
-	testButton.render();
+	renderMenus();
 }
 
 void Game::renderDebugInfo() {
@@ -45,15 +51,24 @@ void Game::renderDebugInfo() {
 
 	std::string yVel = "Yvel: " + std::to_string(int(player.getYVel()));
 	strings.push_back((char*)yVel.c_str());
-	
+
 
 	debugger.renderStrings(strings);
 
 }
 
+void Game::renderMenus() {
+	if (editButtonMenu.getActive()) {
+		editButtonMenu.render();
+	}
+	if (editMenu.getActive()) {
+		editMenu.render();
+	}
+}
+
 
 void Game::renderDrawRect() {
-	
+
 	SDL_SetRenderDrawColor(Window::renderer, drawRectColor.r, drawRectColor.g, drawRectColor.b, drawRectColor.a);
 	SDL_RenderFillRect(Window::renderer, &drawRect);
 }
@@ -64,7 +79,7 @@ void Game::update(float deltaTime) {
 	if (drawingRect) {
 		updateDrawRectCoords();
 	}
-	updateButtons();
+	updateMenus();
 }
 
 
@@ -74,7 +89,7 @@ void Game::flipEditMode() {
 
 
 void Game::init(int w, int h) {
-	
+
 	updateWindowSize(w, h);
 	SDL_Color playerColor;
 	playerColor.r = 255;
@@ -87,9 +102,67 @@ void Game::init(int w, int h) {
 
 	editingLevel = false;
 
-	testButton.init("data/images/StartInactive.png", "data/images/StartActive.png", 0, 0, Level::boxRect.h * 4);
+	initializeMenus();
+}
+
+
+
+void Game::showEditMenu() {
+	editButtonMenu.setActive(false);
+	editMenu.setActive(true);
+	editingLevel = true;
+}
+
+void Game::hideEditMenu() {
+	editButtonMenu.setActive(true);
+	editMenu.setActive(false);
+	editingLevel = false;
+}
+
+
+void Game::initializeMenus() {
+	std::vector<Button*> editButtonButtons;
+	Button* editButton = new Button();
+
+	editButton->init(getImageFilePath("EditButtonInactive.png"), getImageFilePath("EditButtonActive.png"), 0, 0, 4);
+	editButtonButtons.push_back(editButton);
+	editButtonMenu.init(0, 0, false, false, false, false, true, false, true, editButtonButtons);
+	editButtonMenu.setActive(true);
+
+
+	std::vector<Button*> editMenuButtons;
+	Button* activateDelete = new Button();
+	activateDelete->init(getImageFilePath("ActivateDeleteButtonInactive.png"), getImageFilePath("ActivateDeleteButtonActive.png"), 0, 0, 4);
+	editMenuButtons.push_back(activateDelete);
+	Button* placeStart = new Button();
+	placeStart->init(getImageFilePath("PlaceStartButtonInactive.png"), getImageFilePath("PlaceStartButtonActive.png"), 0, 0, 4);
+	editMenuButtons.push_back(placeStart);
+	Button* placeWin = new Button();
+	placeWin->init(getImageFilePath("PlaceWinZoneInactive.png"), getImageFilePath("PlaceWinZoneActive.png"), 0, 0, 4);
+	editMenuButtons.push_back(placeWin);
+
+	Button* endEditButton = new Button();
+	endEditButton->init(getImageFilePath("ExitEditModeInactive.png"), getImageFilePath("ExitEditModeActive.png"), 0, 0, 4);
+	editMenuButtons.push_back(endEditButton);
+
+	editMenu.init(0, 0, false, false, false, false, true, false, true, editMenuButtons);
+	editMenu.setActive(false);
+
+
+
+
 
 }
+
+std::string Game::getImageFilePath(std::string imageName) {
+	std::string newName = "";
+	newName += IMAGEFOLDER;
+	newName += imageName;
+	return newName;
+}
+
+
+
 
 
 void Game::loadNewLevel(const char* levelName) {
@@ -114,22 +187,21 @@ void Game::updatePlayer(float deltaTime) {
 }
 
 
-void Game::updateButtons() {
-	int x, y;
-	SDL_GetMouseState(&x, &y);
-	if (testButton.mouseInButton(x, y)) {
-		testButton.updateButtonActive(true);
+void Game::updateMenus() {
+	if (editButtonMenu.getActive()) {
+		editButtonMenu.updateButtons();
 	}
-	else {
-		testButton.updateButtonActive(false);
+	if (editMenu.getActive()) {
+		editMenu.updateButtons();
 	}
+
 }
 
 void Game::updatePlayerVertical(float deltaTime) {
 	if (player.isOnPlatform()) {
 		SDL_Rect platform = player.getPlatform().getHitbox();
 		if (!areRectsHorizontallyIntersecting(platform, player.getHitbox())) {
-			
+
 			player.setOnPlatform(false);
 		}
 	}
@@ -138,7 +210,7 @@ void Game::updatePlayerVertical(float deltaTime) {
 
 		float y = player.getY();
 
-	
+
 		float yVel = player.getYVel() + GRAVITY * deltaTime * Level::boxRect.h;
 
 		if (yVel > player.getMaxYVel() * Level::boxRect.h) {
@@ -177,29 +249,29 @@ void Game::updatePlayerHorizontal(float deltaTime) {
 		xVel *= GROUNDFRICTION;
 	}
 	if (xVel >= 0) {
-		if (xVel > player.getMaxXVel()*Level::boxRect.w) {
-			xVel = player.getMaxXVel()*Level::boxRect.w;
+		if (xVel > player.getMaxXVel() * Level::boxRect.w) {
+			xVel = player.getMaxXVel() * Level::boxRect.w;
 		}
 	}
 	else if (xVel < 0) {
-		if (abs(xVel) > player.getMaxXVel()*Level::boxRect.w) {
-			xVel = -player.getMaxXVel()*Level::boxRect.w;
+		if (abs(xVel) > player.getMaxXVel() * Level::boxRect.w) {
+			xVel = -player.getMaxXVel() * Level::boxRect.w;
 		}
 	}
 	if (direction == 0) {
 		if (abs(xVel) < PADDING) {
-		
+
 			xVel = 0;
 		}
 	}
 
 	x += xVel * deltaTime * Level::boxRect.w;
 
-	
+
 	player.setXVel(xVel);
 	player.setX(x);
 	resolvePlayerHorizontalCollisions();
-	
+
 }
 
 
@@ -210,8 +282,8 @@ bool Game::resolvePlayerVerticalCollisions() {
 		return false;
 	}
 	float y = player.getY();
-	if (y + player.getHeight() > Game::topLeftY +  Level::boxRect.h * Level::verticalBoxes) {	//if the player hit bottom of screen
-		
+	if (y + player.getHeight() > Game::topLeftY + Level::boxRect.h * Level::verticalBoxes) {	//if the player hit bottom of screen
+
 		player.setOnGround(true);
 		player.setY(Game::topLeftY + Level::boxRect.h * Level::verticalBoxes - player.getHeight());
 		return true;
@@ -228,19 +300,19 @@ bool Game::resolvePlayerVerticalCollisions() {
 		SDL_Rect platformRect = platforms[i].getHitbox();
 		if (areRectsIntersecting(playerRect, platformRect)) {		//could optimize to check for only vertical
 			//if the player is jumping into a platform
-				if (areRectsVerticallyIntersecting(playerRect, platformRect)) {
-					if (player.getYVel() < 0) {
-						player.setYVel(0);
-						player.setY(platformRect.y + platformRect.h);
-					}
-					else {
-						player.setYVel(0);
-						player.setY(platformRect.y - player.getHeight());
-						player.setOnPlatform(true);
-						RectanglePlatform test = platforms.at(i);
-						player.setPlatform(test);
-					}
+			if (areRectsVerticallyIntersecting(playerRect, platformRect)) {
+				if (player.getYVel() < 0) {
+					player.setYVel(0);
+					player.setY(platformRect.y + platformRect.h);
 				}
+				else {
+					player.setYVel(0);
+					player.setY(platformRect.y - player.getHeight());
+					player.setOnPlatform(true);
+					RectanglePlatform test = platforms.at(i);
+					player.setPlatform(test);
+				}
+			}
 		}
 
 	}
@@ -278,12 +350,12 @@ bool Game::resolvePlayerHorizontalCollisions() {
 			if (areRectsHorizontallyIntersecting(playerRect, platformRect)) {
 				if (player.getXVel() > 0) {
 					player.setXVel(0);
-					player.setX(platformRect.x -player.getWidth());
+					player.setX(platformRect.x - player.getWidth());
 				}
 				else {
 					player.setXVel(0);
 					player.setX(platformRect.x + platformRect.w);
-				
+
 				}
 			}
 		}
@@ -294,9 +366,9 @@ bool Game::resolvePlayerHorizontalCollisions() {
 
 
 void Game::attemptPlayerJump() {
-	
+
 	if (player.isOnGround() || player.isOnPlatform()) {
-	
+
 		player.setOnGround(false);
 		player.setOnPlatform(false);
 		player.setYVel(JUMPFORCE * Level::boxRect.h);
@@ -315,7 +387,7 @@ void Game::attemptPlayerMoveRight(bool moving) {
 bool Game::areRectsIntersecting(SDL_Rect rect1, SDL_Rect rect2) {
 	// If one rectangle is on left side of other 
 	if (rect1.x >= rect2.x + rect2.w || rect2.x >= rect1.x + rect1.w) {
-		return false;	
+		return false;
 	}
 	if (rect1.y >= rect2.y + rect2.h || rect2.y >= rect1.y + rect1.h) {
 		return false;
@@ -334,9 +406,9 @@ bool Game::areRectsVerticallyIntersecting(SDL_Rect rect1, SDL_Rect rect2) {
 }
 
 bool Game::areRectsHorizontallyIntersecting(SDL_Rect rect1, SDL_Rect rect2) {
-	
+
 	if (rect1.x >= rect2.x + rect2.w || rect2.x >= rect1.x + rect1.w) {
-		
+
 		return false;
 	}
 	return true;
@@ -345,13 +417,15 @@ bool Game::areRectsHorizontallyIntersecting(SDL_Rect rect1, SDL_Rect rect2) {
 
 
 void Game::handleMouseDown(SDL_MouseButtonEvent& b) {
-	if (editingLevel) {
+	if (handleMenuClick()) {	//if nothing was clicked
+	}
+	else if (editingLevel) {
 		if (b.button == SDL_BUTTON_LEFT) {
 			startDrawingRect();
 		}
 	}
-	
-	
+
+
 }
 
 
@@ -361,7 +435,7 @@ void Game::updateDrawRectCoords() {
 	SDL_GetMouseState(&mouseX, &mouseY);
 
 
-	drawRect.w = (int((abs(mouseX - drawRect.x))/Level::boxRect.w) + 1) * Level::boxRect.w ;
+	drawRect.w = (int((abs(mouseX - drawRect.x)) / Level::boxRect.w) + 1) * Level::boxRect.w;
 
 	drawRect.h = (int((abs(mouseY - drawRect.y)) / Level::boxRect.h) + 1) * Level::boxRect.h;
 
@@ -404,8 +478,8 @@ void Game::startDrawingRect() {
 	drawingRect = true;
 	int mouseX, mouseY;
 	SDL_GetMouseState(&mouseX, &mouseY);
-	drawRect.x = Game::topLeftX + int((mouseX-Game::topLeftX) / Level::boxRect.w) * Level::boxRect.w;
-	drawRect.y = Game::topLeftY + int((mouseY-Game::topLeftY) / Level::boxRect.h) * Level::boxRect.h;
+	drawRect.x = Game::topLeftX + int((mouseX - Game::topLeftX) / Level::boxRect.w) * Level::boxRect.w;
+	drawRect.y = Game::topLeftY + int((mouseY - Game::topLeftY) / Level::boxRect.h) * Level::boxRect.h;
 	drawRect.w = 0;
 	drawRect.h = 0;
 }
@@ -417,16 +491,16 @@ void Game::stopDrawingRect() {
 	if (mouseX - drawRect.x <= 0) {
 		drawRect.w = drawRect.x - mouseX;
 		drawRect.x = mouseX;
-		
+
 	}
 	else {
 		drawRect.w = mouseX - drawRect.x;
 	}
-	
+
 	if (mouseY - drawRect.y <= 0) {
 		drawRect.h = drawRect.y - mouseY;
 		drawRect.y = mouseY;
-		
+
 	}
 	else {
 		drawRect.h = mouseY - drawRect.y;
@@ -438,21 +512,21 @@ void Game::stopDrawingRect() {
 void Game::addDrawRectToLevel() {
 	RectanglePlatform newPlatform;
 
-	float boxesX = (drawRect.x-Game::topLeftX) / Level::boxRect.w;
-	float boxesY = (drawRect.y-Game::topLeftY) / Level::boxRect.h;
-	
+	float boxesX = (drawRect.x - Game::topLeftX) / Level::boxRect.w;
+	float boxesY = (drawRect.y - Game::topLeftY) / Level::boxRect.h;
+
 	int roundedBoxesX, roundedBoxesY, roundedBoxesW, roundedBoxesH;
 
 	roundedBoxesX = int(boxesX);
-	
-	
+
+
 	roundedBoxesY = int(boxesY);
 
 	float boxesEndX = int(drawRect.x + drawRect.w - Game::topLeftX) / Level::boxRect.w;
 
 	float boxesEndY = int(drawRect.y + drawRect.h - Game::topLeftY) / Level::boxRect.h;
 
-	
+
 	//funky stuff happens if we don't do this I have no idea why
 	if (drawNegX) {
 		roundedBoxesW = int(boxesEndX - boxesX);
@@ -466,13 +540,13 @@ void Game::addDrawRectToLevel() {
 	else {
 		roundedBoxesH = int(boxesEndY - boxesY) + 1;
 	}
-	
-	
-	
-	
-	
 
-	if (roundedBoxesX + roundedBoxesW > Level::horizontalBoxes || roundedBoxesX < 0 || roundedBoxesY +roundedBoxesH> Level::verticalBoxes || roundedBoxesY < 0) {
+
+
+
+
+
+	if (roundedBoxesX + roundedBoxesW > Level::horizontalBoxes || roundedBoxesX < 0 || roundedBoxesY + roundedBoxesH> Level::verticalBoxes || roundedBoxesY < 0) {
 		//out of bounds
 	}
 	else {
@@ -482,7 +556,7 @@ void Game::addDrawRectToLevel() {
 		}
 	}
 
-	
+
 }
 
 
@@ -492,8 +566,8 @@ void Game::handleMouseUp(SDL_MouseButtonEvent& b) {
 			stopDrawingRect();
 		}
 	}
-	
-	
+
+
 }
 
 void Game::updateWindowSize(int newWidth, int newHeight) {
@@ -516,9 +590,86 @@ void Game::updateSizes(int newW, int newH) {
 	updateWindowSize(newW, newH);
 	level->updateBoxSize();
 	player.resizePlayer();
-	updateButtonSizes();
+	resizeMenus();
 }
 
-void Game::updateButtonSizes() {
-	testButton.updateButtonSize(0, 0, Level::boxRect.h * 3);
+void Game::resizeMenus() {
+	if (editButtonMenu.getActive()) {
+		editButtonMenu.resizeMenu();
+	}
+	if (editMenu.getActive()) {
+		editMenu.resizeMenu();
+	}
+}
+
+
+
+bool Game::handleMenuClick() {
+	if (editButtonMenu.getActive()) {
+		int index = editButtonMenu.checkForMousePress();
+		if (index >= 0) {
+			switch (index) {
+			case 0:
+				showEditMenu();
+				break;
+
+			default:
+				std::cout << "Undefined behavior in edit menu." << std::endl;
+				break;
+			}
+			return true;
+		}
+	}
+	if (editMenu.getActive()) {
+		int index = editMenu.checkForMousePress();
+		if (index >= 0) {
+			switch (index) {
+			case 0:
+				toggleDeleteMode();
+				break;
+			case 1:
+				startPlacingStart();
+				break;
+			case 2:
+				startPlacingWin();
+				break;
+			case 3:
+				hideEditMenu();
+				break;
+
+			default:
+				std::cout << "undefined behavior in edit menu" << std::endl;
+				break;
+			}
+
+
+
+			return true;
+		}
+	}
+
+
+	return false;
+}
+
+void Game::toggleDeleteMode() {
+	if (deleting) {
+		Button* activateDelete = new Button();
+		activateDelete->init(getImageFilePath("ActivateDeleteButtonInactive.png"), getImageFilePath("ActivateDeleteButtonActive.png"), 0, 0, 4);
+		editMenu.updateButton(activateDelete, 0);
+	}
+	else {
+		Button* deactivateDelete = new Button();
+		deactivateDelete->init(getImageFilePath("DeactivateDeleteButtonInactive.png"), getImageFilePath("DeactivateDeleteButtonActive.png"), 0, 0, 4);
+		editMenu.updateButton(deactivateDelete, 0);
+	}
+	deleting = !deleting;
+}
+
+void Game::startPlacingStart() {
+
+}
+
+void Game::startPlacingWin() {
+
 }

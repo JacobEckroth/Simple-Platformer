@@ -2,6 +2,7 @@
 #include "SDL.h"
 #include "SDL_image.h"
 #include <string>
+#include "VoidFunctions.h"
 class Button
 {
 public:
@@ -13,10 +14,16 @@ public:
 	void updateButtonActive(bool );
 	~Button();
 
-	void updateButtonSize(int x, int y, int newH);
-
-	void init(std::string inactiveString, std::string activeString, int x,int y ,int h);
-
+	void updateButtonSize();
+	void updateButtonPosition(int x, int y);
+	void init(std::string inactiveString, std::string activeString, int x, int y, float boxesH);
+	int getWidth();
+	int getHeight();
+	void setY(int);
+	void setX(int);
+	int getX();
+	int getY();
+	void setFunction();
 private:
 
 
@@ -25,8 +32,12 @@ private:
 
 	float ratio;		//this is equal to W/H
 
+	float boxesHeight;
 
 	SDL_Texture* buttonActiveImage;
 	SDL_Texture* buttonInactiveImage;
+
+	//voidFunction function;
+
 };
 

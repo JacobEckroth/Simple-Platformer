@@ -3,6 +3,7 @@
 #include "Level.h"
 #include "Debugger.h"
 #include "Button.h"
+#include "Menu.h"
 class Game
 {
 private:
@@ -13,6 +14,9 @@ private:
 	bool editingLevel;
 
 	bool drawingRect;
+	bool deleting;
+	bool placingStart;
+	bool placingWin;
 
 	SDL_Color drawRectColor;
 	SDL_Rect drawRect;
@@ -21,7 +25,10 @@ private:
 	Debugger debugger;
 
 
-	Button testButton;
+
+
+	Menu editButtonMenu;
+	Menu editMenu;
 
 public:
 	static int gameScreenWidth;		//will be a square.
@@ -61,6 +68,7 @@ public:
 	void updateDrawRectCoords();
 	void renderDrawRect();
 
+	void renderMenus();
 
 	void updateSizes(int, int);
 	void updateWindowSize(int, int);
@@ -70,7 +78,26 @@ public:
 
 	void renderDebugInfo();
 
-	void updateButtons();
-	void updateButtonSizes();
+	void initializeMenus();
+
+
+	void updateMenus();
+	void resizeMenus();
+	std::string getImageFilePath(std::string imageName);
+
+	bool handleMenuClick();
+
+
+
+	//showing edit menu stuff
+	void showEditMenu();
+	void hideEditMenu();
+
+
+	void toggleDeleteMode();
+	void startPlacingStart();
+	void startPlacingWin();
+	
+
 };
 
