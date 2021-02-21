@@ -3,9 +3,10 @@
 #include "Window.h"
 #include "Game.h"
 #include <iostream>
+#include "TextureManager.h"
 SDL_Color WinRect::winColor;
 
-void WinRect::init(int newBoxesX, int newBoxesY, int newBoxesWidth, int newBoxesHeight) {
+void WinRect::init(int newBoxesX, int newBoxesY, int newBoxesWidth, int newBoxesHeight, std::string winRectFile) {
 	boxesX = newBoxesX;
 	boxesY = newBoxesY;
 	boxesWidth = newBoxesWidth;	
@@ -15,15 +16,18 @@ void WinRect::init(int newBoxesX, int newBoxesY, int newBoxesWidth, int newBoxes
 	drawRect.y = Game::topLeftY + boxesY * Level::boxRect.h;
 	drawRect.w = boxesWidth * Level::boxRect.w;
 	drawRect.h = boxesHeight * Level::boxRect.h;
+	winDoorImage = loadTextureFromPNG(winRectFile);
+	ratio = getTextureRatio(winDoorImage);
+
 
 }
 
 
 
 void WinRect::render() {
+
+	SDL_RenderCopy(Window::renderer, winDoorImage, NULL, &drawRect);
 	
-	SDL_SetRenderDrawColor(Window::renderer, winColor.r, winColor.g, winColor.b, winColor.a);
-	SDL_RenderFillRect(Window::renderer, &drawRect);
 }
 
 SDL_Rect WinRect::getHitbox() {
@@ -51,4 +55,18 @@ int WinRect::getBoxesX() {
 
 int WinRect::getBoxesY() {
 	return boxesY;
+}
+
+WinRect::~WinRect() {
+	SDL_DestroyTexture(winDoorImage);
+}
+
+void WinRect::setBoxesX(int x) {
+	boxesX = x;
+	resizeBox();
+}
+
+void WinRect::setBoxesY(int y) {
+	boxesY = y;
+	resizeBox();
 }

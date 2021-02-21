@@ -6,6 +6,7 @@
 #include <sstream>
 #include "Window.h"
 #include <SDL.h>
+#include "Game.h"
 
 #define VERTICALBOXES 40
 #define HORIZONTALBOXES 40
@@ -198,7 +199,21 @@ void Level::initializeWinRect(std::string line) {
 	std::getline(iss, token, ' ');
 	int h  = stoi(token) ;
 
-	winRect.init(x, y, w, h);
+	std::getline(iss, token, ' ');
+	
+	std::string doorFile = Game::getImageFilePath(token);
+
+	winRect.init(x, y, w, h,doorFile);
+}
+
+void Level::updateWinRectLocation(int boxesX, int boxesY) {
+	if (boxesX +winRect.getBoxesWidth() > Level::horizontalBoxes || boxesX < 0 ||boxesY + winRect.getBoxesHeight() > Level::verticalBoxes || boxesY < 0) {
+
+	}
+	else {
+		winRect.setBoxesX(boxesX);
+		winRect.setBoxesY(boxesY);
+	}
 }
 
 

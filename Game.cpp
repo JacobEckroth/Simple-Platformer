@@ -79,6 +79,9 @@ void Game::update(float deltaTime) {
 	if (drawingRect) {
 		updateDrawRectCoords();
 	}
+	else if (placingStart) {
+		updateStartCoords();
+	}
 	updateMenus();
 }
 
@@ -108,7 +111,6 @@ void Game::init(int w, int h) {
 
 
 void Game::showEditMenu() {
-	editButtonMenu.setActive(false);
 	editMenu.setActive(true);
 	editMenu.resizeMenu();
 	editingLevel = true;
@@ -118,12 +120,18 @@ void Game::hideEditMenu() {
 	if (deleting) {
 		toggleDeleteMode();
 	}
-	editButtonMenu.setActive(true);
 	editMenu.setActive(false);
-	editButtonMenu.resizeMenu();
-	editingLevel = false;
+	
 }
 
+void Game::hideEditButtonMenu() {
+	editButtonMenu.setActive(false);
+}
+
+void Game::showEditButtonMenu() {
+	editButtonMenu.setActive(true);
+	editButtonMenu.resizeMenu();
+}
 
 void Game::initializeMenus() {
 	std::vector<Button*> editButtonButtons;
@@ -163,6 +171,7 @@ std::string Game::getImageFilePath(std::string imageName) {
 	std::string newName = "";
 	newName += IMAGEFOLDER;
 	newName += imageName;
+
 	return newName;
 }
 
@@ -421,16 +430,25 @@ bool Game::areRectsHorizontallyIntersecting(SDL_Rect rect1, SDL_Rect rect2) {
 
 
 
-void Game::handleMouseDown(SDL_MouseButtonEvent& b) {\
+void Game::handleMouseDown(SDL_MouseButtonEvent& b) {
 	if (b.button == SDL_BUTTON_LEFT) {
-		if (handleMenuClick()) {	//if nothing was clicked
+		if (handleMenuClick()) {
+			//do nothing
 		}
-		else if (editingLevel && deleting){
+		else if (editingLevel && deleting) {
 			level->deleteMouseRectangle();
 		}
-		else if(editingLevel){
-			startDrawingRect();
+		else if (placingStart) {
+			
+			placingStart = !placingStart;
+			showEditMenu();
 		}
+		else if (editingLevel) {
+		
+			startDrawingRect();
+			hideEditMenu();
+		}
+		
 	}
 
 }
@@ -477,6 +495,18 @@ void Game::updateDrawRectCoords() {
 
 }
 
+void Game::updateStartCoords() {
+	
+	int mouseX, mouseY;
+	SDL_GetMouseState(&mouseX, &mouseY);
+	int potentialBoxesX = (mouseX - topLeftX) / Level::boxRect.w;
+	int potentialBoxesY = (mouseY - topLeftY) / Level::boxRect.h;
+	
+	level->updateWinRectLocation(potentialBoxesX,potentialBoxesY);
+
+
+
+}
 
 
 void Game::startDrawingRect() {
@@ -516,7 +546,7 @@ void Game::stopDrawingRect() {
 
 		addDrawRectToLevel();
 	}
-	
+
 }
 
 void Game::addDrawRectToLevel() {
@@ -571,15 +601,15 @@ void Game::addDrawRectToLevel() {
 
 
 void Game::handleMouseUp(SDL_MouseButtonEvent& b) {
-	if (editingLevel) {
-	
-		if (b.button == SDL_BUTTON_LEFT) {
+	if (b.button == SDL_BUTTON_LEFT) {
+		if (drawingRect) {
 			stopDrawingRect();
+			showEditMenu();
 		}
+		
 	}
-
-
 }
+
 
 void Game::updateWindowSize(int newWidth, int newHeight) {
 	if (newHeight > newWidth) {
@@ -615,6 +645,23 @@ void Game::resizeMenus() {
 
 
 
+bool Game::mouseOverButton() {
+	if (editButtonMenu.getActive()) {
+		int index = editButtonMenu.checkForMousePress();
+		if (index >= 0) {
+			return true;
+		}
+	}
+	if (editMenu.getActive()) {
+		int index = editMenu.checkForMousePress();
+		if (index >= 0) {
+			return true;
+		}
+	}
+
+
+	return false;
+}
 bool Game::handleMenuClick() {
 	if (editButtonMenu.getActive()) {
 		int index = editButtonMenu.checkForMousePress();
@@ -622,7 +669,7 @@ bool Game::handleMenuClick() {
 			switch (index) {
 			case 0:
 				showEditMenu();
-				
+				hideEditButtonMenu();
 				break;
 
 			default:
@@ -641,12 +688,14 @@ bool Game::handleMenuClick() {
 				break;
 			case 1:
 				startPlacingStart();
+				hideEditMenu();
 				break;
 			case 2:
 				startPlacingWin();
+				hideEditMenu();
 				break;
 			case 3:
-				hideEditMenu();
+				stopEditing();
 				break;
 
 			default:
@@ -662,6 +711,14 @@ bool Game::handleMenuClick() {
 
 
 	return false;
+}
+
+void Game::stopEditing() {
+	hideEditMenu();
+	showEditButtonMenu();
+	placingStart = false;
+	placingWin = false;
+	drawingRect = false;
 }
 
 void Game::toggleDeleteMode() {
@@ -680,7 +737,7 @@ void Game::toggleDeleteMode() {
 }
 
 void Game::startPlacingStart() {
-
+	placingStart = true;
 }
 
 void Game::startPlacingWin() {

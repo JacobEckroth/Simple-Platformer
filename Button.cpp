@@ -2,13 +2,14 @@
 #include <iostream>
 #include <string>
 #include "Window.h"
+#include "TextureManager.h"
 
 void Button::render() {
 	if (buttonActive) {
 		SDL_RenderCopy(Window::renderer, buttonActiveImage, NULL, &buttonRect);
 	}
 	else {
-
+		
 		SDL_RenderCopy(Window::renderer, buttonInactiveImage, NULL, &buttonRect); 
 	}
 }
@@ -26,15 +27,8 @@ bool Button::mouseInButton(int x, int y) {
 
 
 void Button::loadImages(std::string buttonInactiveString, std::string buttonActiveString) {
-	SDL_Surface* activeSurface = IMG_Load(buttonActiveString.c_str());
-	SDL_Surface* inactiveSurface = IMG_Load(buttonInactiveString.c_str());
-	buttonActiveImage = SDL_CreateTextureFromSurface(Window::renderer,activeSurface);
-	buttonInactiveImage = SDL_CreateTextureFromSurface(Window::renderer, inactiveSurface);
-	SDL_FreeSurface(activeSurface);
-	SDL_FreeSurface(inactiveSurface);
-
-
-
+	buttonActiveImage = loadTextureFromPNG(buttonActiveString);
+	buttonInactiveImage = loadTextureFromPNG(buttonInactiveString);
 }
 
 void Button::updateButtonActive(bool newActive) {
@@ -53,11 +47,10 @@ void Button::init(std::string buttonInactiveString, std::string buttonActiveStri
 	
 	buttonRect.x = buttonX;
 	buttonRect.y = buttonY;
+
 	loadImages(buttonInactiveString, buttonActiveString);
-	int w, h;
-	SDL_QueryTexture(buttonActiveImage, NULL, NULL, &w, &h);
-	
-	ratio = float(w) / h;
+	ratio = getTextureRatio(buttonActiveImage);
+
 
 	buttonRect.h = boxesH * Level::boxRect.h;
 	buttonRect.w = buttonRect.h * ratio;

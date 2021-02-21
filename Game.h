@@ -83,21 +83,26 @@ public:
 
 	void updateMenus();
 	void resizeMenus();
-	std::string getImageFilePath(std::string imageName);
+	static std::string getImageFilePath(std::string imageName);
 
 	bool handleMenuClick();
-
+	bool mouseOverButton();
 
 
 	//showing edit menu stuff
 	void showEditMenu();
 	void hideEditMenu();
-
+	void hideEditButtonMenu();
+	void showEditButtonMenu();
 
 	void toggleDeleteMode();
 	void startPlacingStart();
 	void startPlacingWin();
 	
 
+	void updateStartCoords();
+
+
+	void stopEditing();
 };
 

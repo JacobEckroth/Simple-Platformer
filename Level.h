@@ -17,6 +17,8 @@ public:
 	int getAmountOfPlatforms();
 	void initializeStartingPosition(std::string);
 	void initializeWinRect(std::string);
+	void updateWinRectLocation(int boxesX, int boxesY);
+
 	std::vector<RectanglePlatform> getPlatforms();
 
 	int getStartingY();
